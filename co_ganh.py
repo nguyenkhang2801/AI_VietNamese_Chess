@@ -62,7 +62,7 @@ def ganh(board, team):
 
 def vay(board, team):
     '''
-    call after team played to check enemy is "vay" or not
+    Kiem tra va xu li trong truong hop quan doi thu bi vay
     '''
     board = np.copy(board)
     
