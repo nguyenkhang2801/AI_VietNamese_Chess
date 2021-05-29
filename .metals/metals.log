@@ -1,0 +1,19 @@
+[0m2021.05.18 21:04:21 INFO  Started: Metals version 0.10.2 in workspace '/home/xuanhoang232k/Desktop/BK/Nhap_Mon_AI/ASS2' for client vscode 1.55.2.[0m
+[0m2021.05.18 21:04:24 INFO  time: initialize in 3.07s[0m
+[0m2021.05.18 21:04:25 WARN  Build server is not auto-connectable.[0m
+[0m2021.05.18 21:04:25 WARN  no build tool detected in workspace '/home/xuanhoang232k/Desktop/BK/Nhap_Mon_AI/ASS2'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. [0m
+[0m2021.05.19 00:21:30 INFO  shutting down Metals[0m
+[0m2021.05.20 08:43:29 INFO  Started: Metals version 0.10.3 in workspace '/home/xuanhoang232k/Desktop/BK/Nhap_Mon_AI/ASS2' for client Visual Studio Code 1.55.2.[0m
+[0m2021.05.20 08:43:34 INFO  time: initialize in 5.41s[0m
+[0m2021.05.20 08:43:34 WARN  Build server is not auto-connectable.[0m
+[0m2021.05.20 08:43:34 WARN  no build tool detected in workspace '/home/xuanhoang232k/Desktop/BK/Nhap_Mon_AI/ASS2'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. [0m
+[0m2021.05.20 08:51:55 INFO  shutting down Metals[0m
+[0m2021.05.28 09:19:13 INFO  Started: Metals version 0.10.3 in workspace '/home/xuanhoang232k/Desktop/BK/Nhap_Mon_AI/ASS2' for client Visual Studio Code 1.55.2.[0m
+[0m2021.05.28 09:19:19 INFO  time: initialize in 6.15s[0m
+[0m2021.05.28 09:19:20 WARN  Build server is not auto-connectable.[0m
+[0m2021.05.28 09:19:20 WARN  no build tool detected in workspace '/home/xuanhoang232k/Desktop/BK/Nhap_Mon_AI/ASS2'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. [0m
+[0m2021.05.28 17:16:14 INFO  shutting down Metals[0m
+[0m2021.05.29 08:28:56 INFO  Started: Metals version 0.10.3 in workspace '/home/xuanhoang232k/Desktop/BK/Nhap_Mon_AI/ASS2' for client Visual Studio Code 1.55.2.[0m
+[0m2021.05.29 08:29:24 INFO  time: initialize in 28s[0m
+[0m2021.05.29 08:29:24 WARN  Build server is not auto-connectable.[0m
+[0m2021.05.29 08:29:24 WARN  no build tool detected in workspace '/home/xuanhoang232k/Desktop/BK/Nhap_Mon_AI/ASS2'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. [0m
