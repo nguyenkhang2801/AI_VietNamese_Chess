@@ -1,13 +1,13 @@
 import numpy as np
-import os
 
-
-AI_TEAM=1
 
 neighborDict = {}
 adjacentDict = {}
 neighborPosL = []
 adjacentPosL = []
+
+AI_TEAM = None
+
 for r in range(5):
     for c in range(5):
         neighborPosL = [(r, c - 1), (r, c + 1), (r - 1, c), (r + 1, c), (r - 1, c - 1), (r + 1, c + 1), (r - 1, c + 1), (r + 1, c - 1)]
@@ -22,56 +22,10 @@ for r in range(5):
             adjacentDict[r*5 + c] = neighborDict[r*5 + c] = neighborPosL
         
         adjacentPosL = neighborPosL = []
-def traverse_CHET(startPos, currColor, oppColor, state, q = []):
-    # startPos: starting position for traversing; (r, c)
-    # currColor: current player's color
-    # oppColor: opponent's color
-    # state: board game
-    # q: list saving opponents' positions of which colors were changed
-    # return True if no way out, else False
-    
-    # index = startPos[0]*5 + startPos[1]
-    # aL = adjacentDict[index]
-    #state[ startPos[0] ][ startPos[1] ] = currColor
-    
-    ############################### DFS
-    
-    state[ startPos[0] ][ startPos[1] ] = currColor
-    q.append(startPos)
-    for x in adjacentDict[ startPos[0]*5 + startPos[1] ]:
-        if (state[ x[0] ][ x[1] ] == 0) or ( state[ x[0] ][ x[1] ] == oppColor and ( not traverse_CHET(x, currColor, oppColor, state, q) ) ):
-            while(q[-1] != startPos):
-                state[ q[-1][0] ][ q[-1][1] ] = oppColor
-                q.pop()
-            state[ startPos[0] ][ startPos[1] ] = oppColor
-            q.pop()
-            return False
-            
-    return True
-def move(board, from_pos, to_pos):
+
+def my_move(board, from_pos, to_pos):
     board[to_pos[0],to_pos[1]] = board[from_pos[0], from_pos[1]]
     board[from_pos[0], from_pos[1]] = 0
-
-def show_board(board):
-    for i in range(5):
-        for j in range(5):
-            if board[i,j] == 1:
-                print('X\t', end='')
-            elif board[i,j] == -1:
-                print('O\t', end='')
-            else:
-                print('_\t', end='')
-        print('\n', end='')
-
-def move(board, fromPos, toPos):
-    board = np.copy(board)
-    if board[fromPos[0], fromPos[1]] == 0 or board[toPos[0], toPos[1]] != 0:
-        # raise ValueError("Move error")
-        print("Move error")
-        return None
-    board[toPos[0], toPos[1]] = board[fromPos[0], fromPos[1]]
-    board[fromPos[0], fromPos[1]] = 0
-    return board
 
 def ganh(board, team):
     '''
@@ -133,7 +87,7 @@ def minimax(board, a, b, dept, myTurn):
                 if board[neighbor[0],neighbor[1]] != 0:
                     continue
                 temp_board = np.copy(board)
-                move(temp_board, pos, neighbor)
+                my_move(temp_board, pos, neighbor)
                 temp_board = postprocess_move(temp_board, pos, neighbor, AI_TEAM)
                 temp = minimax(board, a, b, dept-1, False)
                 a = max(a, temp)
@@ -151,7 +105,7 @@ def minimax(board, a, b, dept, myTurn):
                 if board[neighbor[0],neighbor[1]] != 0:
                     continue
                 temp_board = np.copy(board)
-                move(temp_board, pos, neighbor)
+                my_move(temp_board, pos, neighbor)
                 temp_board = postprocess_move(temp_board, pos, neighbor, -1*AI_TEAM)
                 temp = minimax(board, a, b, dept-1, True)
                 b = min(a, temp)
@@ -161,7 +115,34 @@ def minimax(board, a, b, dept, myTurn):
             if stop:
                 break
         return b
-                    
+
+def traverse_CHET(startPos, currColor, oppColor, state, q = []):
+    # startPos: starting position for traversing; (r, c)
+    # currColor: current player's color
+    # oppColor: opponent's color
+    # state: board game
+    # q: list saving opponents' positions of which colors were changed
+    # return True if no way out, else False
+    
+    # index = startPos[0]*5 + startPos[1]
+    # aL = adjacentDict[index]
+    #state[ startPos[0] ][ startPos[1] ] = currColor
+    
+    ############################### DFS
+    
+    state[ startPos[0] ][ startPos[1] ] = currColor
+    q.append(startPos)
+    for x in adjacentDict[ startPos[0]*5 + startPos[1] ]:
+        if (state[ x[0] ][ x[1] ] == 0) or ( state[ x[0] ][ x[1] ] == oppColor and ( not traverse_CHET(x, currColor, oppColor, state, q) ) ):
+            while(q[-1] != startPos):
+                state[ q[-1][0] ][ q[-1][1] ] = oppColor
+                q.pop()
+            state[ startPos[0] ][ startPos[1] ] = oppColor
+            q.pop()
+            return False
+            
+    return True
+
 
 def postprocess_move(board, fromPos, toPos, team):
     '''
@@ -185,7 +166,10 @@ def postprocess_move(board, fromPos, toPos, team):
                     # f.write('board: {0}\n'.format(board))
     
     return board
-def get_next_move(board):
+
+def get_next_move(board, player):
+    global AI_TEAM
+    AI_TEAM = player
     score = 0
     max_score=-40
     nextMove = None
@@ -197,7 +181,7 @@ def get_next_move(board):
             if board[neighbor[0],neighbor[1]] != 0:
                 continue
             temp_board = np.copy(board)
-            move(temp_board, pos, neighbor)
+            my_move(temp_board, pos, neighbor)
             temp_board = postprocess_move(temp_board, pos, neighbor, AI_TEAM)
             score = minimax(board, -30, 30, 2, False)
             # print('+++++++++++++++++++++++++++++++++++++++++++++++!')
@@ -211,40 +195,3 @@ def get_next_move(board):
     print('next move: ', nextMove)
     return nextMove
 
-def playgame(board):
-
-    while True:
-        print('==================================================')
-        print('From pos')
-        y1 = int(input("y: "))
-        x1 = int(input("x: "))
-        
-        
-        print('To pos')
-        y2 = int(input("y: "))
-        x2 = int(input("x: "))
-        
-        board = move(board, (y1,x1), (y2,x2))
-        board = postprocess_move(board, (y1,x1), (y2,x2), -1 * AI_TEAM)
-
-        show_board(board)
-        print('_____________________________________________')
-
-
-        next_move = get_next_move(board)
-        board = move(board, next_move[0], next_move[1])
-        board = postprocess_move(board, next_move[0], next_move[1], AI_TEAM)
-
-        show_board(board)
-
-
-board =np.array([
-        [   1,  1,  1,  1,  1],
-        [   1,  0,  0,  0,  1],
-        [   1,  0,  0,  0,  -1],
-        [   -1, 0,  0,  0,  -1],
-        [   -1, -1, -1, -1, -1]
-])
-
-show_board(board)
-playgame(board)

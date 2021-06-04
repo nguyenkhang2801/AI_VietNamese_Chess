@@ -17,3 +17,13 @@
 [0m2021.05.29 08:29:24 INFO  time: initialize in 28s[0m
 [0m2021.05.29 08:29:24 WARN  Build server is not auto-connectable.[0m
 [0m2021.05.29 08:29:24 WARN  no build tool detected in workspace '/home/xuanhoang232k/Desktop/BK/Nhap_Mon_AI/ASS2'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. [0m
+[0m2021.05.29 10:24:06 INFO  shutting down Metals[0m
+[0m2021.05.29 12:28:40 INFO  Started: Metals version 0.10.3 in workspace '/home/xuanhoang232k/Desktop/BK/Nhap_Mon_AI/ASS2' for client Visual Studio Code 1.55.2.[0m
+[0m2021.05.29 12:28:44 INFO  time: initialize in 3.3s[0m
+[0m2021.05.29 12:28:44 WARN  Build server is not auto-connectable.[0m
+[0m2021.05.29 12:28:44 WARN  no build tool detected in workspace '/home/xuanhoang232k/Desktop/BK/Nhap_Mon_AI/ASS2'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. [0m
+[0m2021.05.29 14:56:23 INFO  shutting down Metals[0m
+[0m2021.06.04 09:33:50 INFO  Started: Metals version 0.10.4 in workspace '/home/xuanhoang232k/Desktop/BK/Nhap_Mon_AI/ASS2' for client Visual Studio Code 1.55.2.[0m
+[0m2021.06.04 09:33:58 INFO  time: initialize in 8.52s[0m
+[0m2021.06.04 09:33:58 WARN  Build server is not auto-connectable.[0m
+[0m2021.06.04 09:33:58 WARN  no build tool detected in workspace '/home/xuanhoang232k/Desktop/BK/Nhap_Mon_AI/ASS2'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. [0m
