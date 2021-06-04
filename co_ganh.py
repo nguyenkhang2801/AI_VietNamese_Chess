@@ -48,9 +48,6 @@ def traverse_CHET(startPos, currColor, oppColor, state, q = []):
             return False
             
     return True
-def move(board, from_pos, to_pos):
-    board[to_pos[0],to_pos[1]] = board[from_pos[0], from_pos[1]]
-    board[from_pos[0], from_pos[1]] = 0
 
 def show_board(board):
     for i in range(5):
