@@ -130,7 +130,7 @@ def minimax(board, a, b, dept, myTurn):
                 if board[neighbor[0],neighbor[1]] != 0:
                     continue
                 temp_board = np.copy(board)
-                move(temp_board, pos, neighbor)
+                temp_board = move(temp_board, pos, neighbor)
                 temp_board = postprocess_move(temp_board, pos, neighbor, AI_TEAM)
                 temp = minimax(board, a, b, dept-1, False)
                 a = max(a, temp)
@@ -148,10 +148,10 @@ def minimax(board, a, b, dept, myTurn):
                 if board[neighbor[0],neighbor[1]] != 0:
                     continue
                 temp_board = np.copy(board)
-                move(temp_board, pos, neighbor)
+                temp_board = move(temp_board, pos, neighbor)
                 temp_board = postprocess_move(temp_board, pos, neighbor, -1*AI_TEAM)
                 temp = minimax(board, a, b, dept-1, True)
-                b = min(a, temp)
+                b = min(b, temp)
                 if a >= b:
                     stop = True
                     break
@@ -194,9 +194,10 @@ def get_next_move(board):
             if board[neighbor[0],neighbor[1]] != 0:
                 continue
             temp_board = np.copy(board)
-            move(temp_board, pos, neighbor)
+            temp_board = move(temp_board, pos, neighbor)
             temp_board = postprocess_move(temp_board, pos, neighbor, AI_TEAM)
-            score = minimax(board, -30, 30, 2, False)
+            score = minimax(temp_board, -30, 30, 1, False)
+            print('{0} -> {1}: {2}'.format(pos, neighbor, score))
             # print('+++++++++++++++++++++++++++++++++++++++++++++++!')
             # print('pos: ', pos)
             # print('score: ', score)
@@ -245,3 +246,13 @@ board =np.array([
 
 show_board(board)
 playgame(board)
+
+# board = np.array([
+#     [   1,  1,  1,  1,  1],
+#     [   1,  1,  0,  0,  1],
+#     [   0,  0,  0,  0,  1],
+#     [   -1, -1,  -1,  0,  1],
+#     [   -1, 0, 0, -1, -1]
+# ])
+
+# print(minimax(board, -30, 30, 1, False))

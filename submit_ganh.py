@@ -1,5 +1,5 @@
-import numpy as np
 
+import numpy as np
 
 neighborDict = {}
 adjacentDict = {}
@@ -64,11 +64,9 @@ def ganh(board, team):
 
 def eveluate(board):
     if len(np.where(board==AI_TEAM)[0]) == 0:
-        print('Player won')
         return -30
 
     if len(np.where(board==-AI_TEAM)[0]) == 0:
-        print('AI won')
         return 30
     
     return len(np.where(board==AI_TEAM)[0])
@@ -117,18 +115,6 @@ def minimax(board, a, b, dept, myTurn):
         return b
 
 def traverse_CHET(startPos, currColor, oppColor, state, q = []):
-    # startPos: starting position for traversing; (r, c)
-    # currColor: current player's color
-    # oppColor: opponent's color
-    # state: board game
-    # q: list saving opponents' positions of which colors were changed
-    # return True if no way out, else False
-    
-    # index = startPos[0]*5 + startPos[1]
-    # aL = adjacentDict[index]
-    #state[ startPos[0] ][ startPos[1] ] = currColor
-    
-    ############################### DFS
     
     state[ startPos[0] ][ startPos[1] ] = currColor
     q.append(startPos)
@@ -150,20 +136,12 @@ def postprocess_move(board, fromPos, toPos, team):
     toPos: vị trí mới
     team: team vừa di chuyển
     '''
-    # print('postprocess_move ran')
     neighbors = adjacentDict[toPos[0]*5+toPos[1]]
-    # print('neighbors: ', neighbors)
     board = np.copy(board)
     board = ganh(board, team)
     for neighbor in neighbors:
         if board[neighbor[0], neighbor[1]] == team*-1:
-            temp_board = np.copy(board)
             traverse_CHET(neighbor, team, team*-1, board)
-            if np.any(temp_board != board):
-                with open('ret.txt', 'a') as f:
-                    print('vay: ', neighbor)
-                    # f.write('temp_board: \n{0}\n'.format(temp_board))
-                    # f.write('board: {0}\n'.format(board))
     
     return board
 
@@ -192,6 +170,6 @@ def get_next_move(board, player):
                 
                 nextMove = [pos, neighbor]
                 max_score = score
-    print('next move: ', nextMove)
+    # print('next move: ', nextMove)
     return nextMove
 
