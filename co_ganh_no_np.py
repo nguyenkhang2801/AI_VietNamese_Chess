@@ -2,6 +2,7 @@ import copy
 
 
 AI_TEAM=1
+AI_BOARD = None
 
 neighborDict = {}
 adjacentDict = {}
@@ -246,6 +247,57 @@ def get_next_move(board):
     print(nextMove)
     return nextMove
 
+def process(board):
+    global AI_BOARD
+    if AI_BOARD == None:
+        AI_BOARD = board
+        nextMove = get_next_move(board)
+        AI_BOARD = move(AI_BOARD, nextMove[0], nextMove[1])
+        return nextMove
+    
+    fromPos = None
+    toPos = None
+    for i in range(5):
+        for j in range(5):
+            if board[i][j] != AI_BOARD[i][j]:
+                if AI_BOARD[i][j] != 0:
+                    fromPos = (i,j)
+                else:
+                    toPos = (i,j)
+    
+    print('Nuoc di gan nhat: {0}->{1}'.format(fromPos, toPos))
+    
+    # Co ganh or vay
+    if eveluate(AI_BOARD) != eveluate(board):
+        nextMove = get_next_move(board)
+        if nextMove != None:
+            AI_BOARD = move(AI_BOARD, nextMove[0], nextMove[1])
+        return nextMove
+    
+    neighbors_can_move = [] # Luu cac neighbor co the di chuyen khi dinh bay
+    # Khong ganh or vay
+    neighbors = adjacentDict[fromPos[0]*5+fromPos[1]]
+    for neighbor in neighbors:
+        if board[ neighbor[0] ][ neighbor[1] ] != AI_TEAM:
+            continue
+        temp_board = copy.deepcopy(board)
+        temp_board = move(temp_board, neighbor, fromPos)
+        if not cmp_board(ganh(temp_board, AI_TEAM), temp_board): # co the ganh duoc
+            neighbors_can_move.append(neighbor)
+    
+    if len(neighbors_can_move) == 0:
+        nextMove = get_next_move(board)
+        if nextMove != None:
+            AI_BOARD = move(AI_BOARD, nextMove[0], nextMove[1])
+        return nextMove
+    
+    else:
+        nextMove = (neighbors_can_move[0],fromPos)
+        AI_BOARD = move(AI_BOARD, nextMove[0], nextMove[1])
+        return nextMove
+
+
+
 def playgame(board):
 
     while True:
@@ -266,7 +318,8 @@ def playgame(board):
         print('_____________________________________________')
 
 
-        next_move = get_next_move(board)
+        # next_move = get_next_move(board)
+        next_move = process(board)
         board = move(board, next_move[0], next_move[1])
         board = postprocess_move(board, next_move[0], next_move[1], AI_TEAM)
 

@@ -7,6 +7,7 @@ neighborPosL = []
 adjacentPosL = []
 
 AI_TEAM = None
+AI_BOARD = None
 
 for r in range(5):
     for c in range(5):
@@ -194,10 +195,9 @@ def postprocess_move(board, fromPos, toPos, team):
     
     return board
 
-def get_next_move(board, player):
+def get_next_move(board):
 
-    global AI_TEAM
-    AI_TEAM = player
+    
     score = 0
     max_score=-40
     nextMove = None
@@ -229,3 +229,55 @@ def get_next_move(board, player):
     print(nextMove)
     return nextMove
 
+def process(board, player):
+    global AI_TEAM
+    AI_TEAM = player
+    global AI_BOARD
+    if AI_BOARD == None:
+        AI_BOARD = board
+        nextMove = get_next_move(board)
+        AI_BOARD = my_move(AI_BOARD, nextMove[0], nextMove[1])
+        return nextMove
+    
+
+    # Tim buoc di cua doi thu
+    fromPos = None
+    toPos = None
+    for i in range(5):
+        for j in range(5):
+            if board[i][j] != AI_BOARD[i][j]:
+                if AI_BOARD[i][j] != 0:
+                    fromPos = (i,j)
+                else:
+                    toPos = (i,j)
+    
+    # Co ganh or vay
+    if eveluate(AI_BOARD) != eveluate(board):
+        nextMove = get_next_move(board)
+        if nextMove != None:
+            AI_BOARD = my_move(AI_BOARD, nextMove[0], nextMove[1])
+        return nextMove
+    
+    neighbors_can_move = [] # Luu cac neighbor co the di chuyen khi dinh bay
+    # Khong ganh or vay
+    if fromPos == None:
+        raise ValueError("Loi None")
+    neighbors = adjacentDict[ fromPos[0]*5 + fromPos[1] ]
+    for neighbor in neighbors:
+        if board[ neighbor[0] ][ neighbor[1] ] != AI_TEAM:
+            continue
+        temp_board = copy.deepcopy(board)
+        temp_board = my_move(temp_board, neighbor, fromPos)
+        if not cmp_board(ganh(temp_board, AI_TEAM), temp_board): # co the ganh duoc
+            neighbors_can_move.append(neighbor)
+    
+    if len(neighbors_can_move) == 0:
+        nextMove = get_next_move(board)
+        if nextMove != None:
+            AI_BOARD = my_move(AI_BOARD, nextMove[0], nextMove[1])
+        return nextMove
+    
+    else:
+        nextMove = (neighbors_can_move[0],fromPos)
+        AI_BOARD = my_move(AI_BOARD, nextMove[0], nextMove[1])
+        return nextMove
