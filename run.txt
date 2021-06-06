@@ -1,0 +1,15 @@
+chạy thử:
+- trong file run.py có 	Test_Board (trạng thái đến lược player), 
+		và Pre_Board (trạng thái trước khi quân địch đi)
+- chạy file run.py
+
+LƯU Ý: bàn cờ của thầy sẽ bị ngược so với Test_Board và Pre_Board, nhưng kết quả vẫn đúng
+
+nộp bài:
+- copy trong file 1652192.py (trừ vài dòng import) lên bài nộp
+
+- sửa hàm def move(...):
+hàm def move(board, player): 
+	#tôi có kiểm tra, "player" trong hàm này luôn bằng 1
+	A = Player(player)
+	return A.next_move(board)
