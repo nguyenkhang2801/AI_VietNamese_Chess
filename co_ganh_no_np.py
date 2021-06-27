@@ -255,14 +255,16 @@ def process(board):
         AI_BOARD = move(AI_BOARD, nextMove[0], nextMove[1])
         return nextMove
     
+    print('show AI_BOARD: ')
+    show_board(AI_BOARD)
     fromPos = None
     toPos = None
     for i in range(5):
         for j in range(5):
             if board[i][j] != AI_BOARD[i][j]:
-                if AI_BOARD[i][j] != 0:
+                if AI_BOARD[i][j] == -1 * AI_TEAM and board[i][j] == 0:
                     fromPos = (i,j)
-                else:
+                elif AI_BOARD[i][j] == 0 and board[i][j] == -1 * AI_TEAM:
                     toPos = (i,j)
     
     print('Nuoc di gan nhat: {0}->{1}'.format(fromPos, toPos))
@@ -271,7 +273,7 @@ def process(board):
     if eveluate(AI_BOARD) != eveluate(board):
         nextMove = get_next_move(board)
         if nextMove != None:
-            AI_BOARD = move(AI_BOARD, nextMove[0], nextMove[1])
+            AI_BOARD = move(board, nextMove[0], nextMove[1])
         return nextMove
     
     neighbors_can_move = [] # Luu cac neighbor co the di chuyen khi dinh bay
@@ -288,12 +290,12 @@ def process(board):
     if len(neighbors_can_move) == 0:
         nextMove = get_next_move(board)
         if nextMove != None:
-            AI_BOARD = move(AI_BOARD, nextMove[0], nextMove[1])
+            AI_BOARD = move(board, nextMove[0], nextMove[1])
         return nextMove
     
     else:
         nextMove = (neighbors_can_move[0],fromPos)
-        AI_BOARD = move(AI_BOARD, nextMove[0], nextMove[1])
+        AI_BOARD = move(board, nextMove[0], nextMove[1])
         return nextMove
 
 
