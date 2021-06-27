@@ -1,209 +1,369 @@
-import numpy as np
 import copy
 
-from numpy.core.fromnumeric import size
-from numpy.core.numerictypes import maximum_sctype
-from numpy.lib.function_base import bartlett
 
-class Caro:
-    def __init__(self, size=3):
-        self.size = size
-        self.value = 1
-        self.enemy = 2
-        self.win_line = -1 # 0: vertical, 1: horizontal, 2: cross
+AI_TEAM=1
+AI_BOARD = None
 
-    def showBoard(self, board):
-        print(board)
-        print('\n')
-        for i in range(self.size):
-            for j in range(self.size):
-                if board[i,j] == 0:
-                    print('_\t', end="")
-                elif board[i,j] == 1:
-                    print('o\t',end="")
-                else:
-                    print('x\t', end="")
-            print('\n', end="")
-    
-    def move(self, board, position, value):
-        # position: (y,x)
-        board = np.copy(board)
-        if board[position[0], position[1]] != 0:
-            print('++++++++++++++++++++++++++++++++++++++++')
-            print('Position marked')
-            print(position)
-            self.showBoard(board)
-            print('===========================================')
-            return None
-        board[position[0], position[1]] = value
-        return board
-
-    def check_strait(self, board, pos):
-        if board[pos, 0] != 0 and len(np.nonzero(board[pos] - board[pos,0])[0]) == 0:
-            self.win_line = 1
-            return True
-        if board[0, pos] != 0 and len(np.nonzero(board[:, pos] - board[0, pos])[0]) == 0:
-            self.win_line = 0
-            return True
-        return False
-    
-    def check_cross(self, board):
-        diagonal = np.diagonal(board)
-        anti_diagonal = np.diagonal(np.fliplr(board))
-        if diagonal[0] != 0 and len(np.nonzero(diagonal - diagonal[0])[0]) == 0:
-            self.win_line = 2
-            return True
-        if anti_diagonal[0] != 0 and len(np.nonzero(anti_diagonal - anti_diagonal[0])[0]) == 0:
-            self.win_line = 2
-            return True
-        return False
-    def isEndGame(self, board):
-        for i in range(self.size):
-            if self.check_strait(board, i):
-                return True
-        if self.check_cross(board): return True
-        if len(np.nonzero(board)[0]) == self.size**2: return True
-        return False
-
-    def get_result(self, board):
-        if not self.isEndGame(board):
-            return 0
-        if self.win_line == -1:
-            return 0
-        if self.win_line == 2:
-            return board[self.size//2, self.size//2]
-
-        for i in range(self.size):
-            if self.check_strait(board, i):
-                if self.win_line == 0:
-                    return board[0,i]
-                return board[i,0]
-
-    def eveluate(self, board):
-        if self.get_result(board) == 1:
-            return 10
-        elif self.get_result(board) == 2:
-            return -10
-
-        score = 0
-        for i in range(self.size):
-            if len(np.where(board[i, :] == self.enemy)[0])==0 and len(np.where(board[i, :] == self.value)[0]) > 0:
-                score += 1
-            if len(np.where(board[:, i] == self.enemy)[0])==0 and len(np.where(board[:, i] == self.value)[0]) > 0:
-                score += 1
-        diagonal = np.diagonal(board)
-        anti_diagonal = np.diagonal(np.fliplr(board))
-        if len(np.where(diagonal == self.enemy)[0])==0 and len(np.where(diagonal == self.value)[0]) > 0:
-                score += 1
-        if len(np.where(anti_diagonal == self.enemy)[0])==0 and len(np.where(anti_diagonal == self.value)[0]) > 0:
-                score += 1
-        return score
-    
-    def alphabeta(self, board, a, b, dept, myTurn):
-        if self.isEndGame(board) or dept == 0:
-            return self.eveluate(board)
+neighborDict = {}
+adjacentDict = {}
+neighborPosL = []
+adjacentPosL = []
+for r in range(5):
+    for c in range(5):
+        neighborPosL = [(r, c - 1), (r, c + 1), (r - 1, c), (r + 1, c), (r - 1, c - 1), (r + 1, c + 1), (r - 1, c + 1), (r + 1, c - 1)]
+        if (r % 2 == 0 and c % 2 != 0) or (r % 2 != 0 and c % 2 == 0):
+            adjacentPosL = [(r - 1, c), (r, c - 1), (r, c + 1), (r + 1, c)]
+            adjacentPosL = list( filter(lambda x: (0 <= x[0] < 5) and (0 <= x[1] < 5), adjacentPosL) )
+            neighborPosL = list( filter(lambda x: (0 <= x[0] < 5) and (0 <= x[1] < 5), neighborPosL) )
+            neighborDict[r*5 + c] = neighborPosL
+            adjacentDict[r*5 + c] = adjacentPosL
+        else:
+            adjacentPosL = neighborPosL = list( filter(lambda x: (0 <= x[0] < 5) and (0 <= x[1] < 5), neighborPosL) )
+            adjacentDict[r*5 + c] = neighborDict[r*5 + c] = neighborPosL
         
-        movable = np.where(board == 0)
-        if myTurn:
-            for pos in zip(movable[0], movable[1]):
-                if board[pos[0], pos[1]] != 0:
-                    raise ValueError("Loi move")
-                n_board = self.move(board, pos, self.value)
-                temp = self.alphabeta(n_board, a, b, dept-1, False)
+        adjacentPosL = neighborPosL = []
+def traverse_CHET(startPos, currColor, oppColor, state, q = []):
+    # startPos: starting position for traversing; (r, c)
+    # currColor: current player's color
+    # oppColor: opponent's color
+    # state: board game
+    # q: list saving opponents' positions of which colors were changed
+    # return True if no way out, else False
+    
+    # index = startPos[0]*5 + startPos[1]
+    # aL = adjacentDict[index]
+    #state[ startPos[0] ][ startPos[1] ] = currColor
+    
+    ############################### DFS
+    
+    state[ startPos[0] ][ startPos[1] ] = currColor
+    q.append(startPos)
+    for x in adjacentDict[ startPos[0]*5 + startPos[1] ]:
+        if (state[ x[0] ][ x[1] ] == 0) or ( state[ x[0] ][ x[1] ] == oppColor and ( not traverse_CHET(x, currColor, oppColor, state, q) ) ):
+            while(q[-1] != startPos):
+                state[ q[-1][0] ][ q[-1][1] ] = oppColor
+                q.pop()
+            state[ startPos[0] ][ startPos[1] ] = oppColor
+            q.pop()
+            return False
+            
+    return True
+
+def cmp_board(board1, board2):
+    for i in range(25):
+        if board1[i//5][i%5] != board2[i//5][i%5]:
+            return False
+    return True
+    
+def show_board(board):
+    for i in range(5):
+        for j in range(5):
+            if board[i][j] == 1:
+                print('X\t', end='')
+            elif board[i][j] == -1:
+                print('O\t', end='')
+            else:
+                print('_\t', end='')
+        print('\n', end='')
+
+def makemove(board, fromPos, toPos):
+    board = copy.deepcopy(board)
+    if board[ fromPos[0] ][ fromPos[1] ] == 0 or board[ toPos[0] ][ toPos[1] ] != 0:
+        # raise ValueError("Move error")
+        #print("Move error")
+        return None
+    board[ toPos[0] ][ toPos[1] ] = board[ fromPos[0] ][ fromPos[1] ]
+    board[ fromPos[0] ][ fromPos[1] ] = 0
+    return board
+
+def ganh(board, team):
+    '''
+    check enemy team is "ganh" or not 
+    co the bi loi
+    '''
+    board = copy.deepcopy(board)
+    def process(board, team):
+        temp_board = copy.deepcopy(board)
+        board = []
+        for i in range(5):
+            for j in range(5):
+                board.append(temp_board[i][j])
+        team_pos = []
+        for i in range(25):
+            if board[i] == team:
+                team_pos.append(i)
+        for pos in team_pos:
+            if pos % 2 == 0:
+                if 1 <= pos // 5 <= 3 and 1 <= pos % 5 <= 3:
+                    if board[pos] * -2 == board[pos-6] + board[pos+6]:
+                        board[pos-6] = board[pos]
+                        board[pos+6] = board[pos]
+                    if board[pos] * -2 == board[pos-4] + board[pos+4]:
+                        board[pos-4] = board[pos]
+                        board[pos+4] = board[pos]
+            if pos-1 >= 0 and pos + 1 <= 24 and (pos-1) % 5 < (pos+1) % 5:
+                if board[pos] * -2 == board[pos-1] + board[pos+1]:
+                    board[pos-1] = board[pos]
+                    board[pos+1] = board[pos]
+            if pos-5 >= 0 and pos + 5 <= 24 and (pos-5) // 5 < (pos+5) // 5:
+                if board[pos] * -2 == board[pos-5] + board[pos+5]:
+                    board[pos-5] = board[pos]
+                    board[pos+5] = board[pos]
+        for i in range(5):
+            for j in range(5):
+                temp_board[i][j] = board[i*5+j]
+        return temp_board
+
+    new_board = process(board, team)
+    # while (collections.Counter(new_board) != collections.Counter(board)):
+    while not cmp_board(new_board, board):
+        board = new_board
+        new_board = process(board, team)
+    
+    return board
+
+
+
+def eveluate(board):
+    count = 0
+    for i in range(5):
+        for j in range(5):
+            if board[i][j] == AI_TEAM:
+                count += 1
+    if count == 0:
+        #print('Player won')
+        return -30
+
+    if count == 16:
+        #print('AI won')
+        return 30
+    
+    return count
+
+def minimax(board, a, b, dept, myTurn):
+    temp_board = None
+    if dept == 0:
+        return eveluate(board)
+    stop = False
+    
+    if myTurn:
+        team_pos = []
+        for i in range(5):
+            for j in range(5):
+                if board[i][j] == AI_TEAM:
+                    team_pos.append((i,j))
+        # team_pos = np.where(board == AI_TEAM)
+        for pos in team_pos:
+            neighbors = adjacentDict[pos[0]*5 + pos[1]]
+            for neighbor in neighbors:
+                if board[ neighbor[0] ][ neighbor[1] ] != 0:
+                    continue
+                temp_board = copy.deepcopy(board)
+                temp_board = makemove(temp_board, pos, neighbor)
+                temp_board = postprocess_move(temp_board, pos, neighbor, AI_TEAM)
+                temp = minimax(temp_board, a, b, dept-1, False)
                 a = max(a, temp)
                 if a >= b:
+                    stop = True
                     break
-            return a
-        else:
-            for pos in zip(movable[0], movable[1]):
-                if board[pos[0], pos[1]] != 0:
-                    raise ValueError("Loi move1")
-                n_board = self.move(board, pos, self.enemy)
-                b = min(b, self.alphabeta(n_board, a, b, dept-1, True))
+            if stop:
+                break
+        return a
+    else:
+        team_pos = []
+        for i in range(5):
+            for j in range(5):
+                if board[i][j] == -1 * AI_TEAM:
+                    team_pos.append((i,j))
+        # team_pos = np.where(board == -1 * AI_TEAM)
+        for pos in team_pos:
+            neighbors = adjacentDict[pos[0]*5 + pos[1]]
+            for neighbor in neighbors:
+                if board[ neighbor[0] ][ neighbor[1] ] != 0:
+                    continue
+                temp_board = copy.deepcopy(board)
+                temp_board = makemove(temp_board, pos, neighbor)
+                temp_board = postprocess_move(temp_board, pos, neighbor, -1*AI_TEAM)
+                temp = minimax(temp_board, a, b, dept-1, True)
+                b = min(b, temp)
                 if a >= b:
+                    stop = True
                     break
-            return b
-        raise ValueError("Loi roi")    
+            if stop:
+                break
+        return b
+                    
+
+def postprocess_move(board, fromPos, toPos, team):
+    '''
+    fromPos: Vị trí cũ
+    toPos: vị trí mới
+    team: team vừa di chuyển
+    '''
+    neighbors = adjacentDict[toPos[0]*5+toPos[1]]
+    # print('neighbors: ', neighbors)
+    board = copy.deepcopy(board)
+    board = ganh(board, team)
+    for neighbor in neighbors:
+        if board[ neighbor[0] ][ neighbor[1] ] == team*-1:
+            temp_board = copy.deepcopy(board)
+            traverse_CHET(neighbor, team, team*-1, board)
+            # if collections.Counter(temp_board) != collections.Counter(board):
+            # if not cmp_board(temp_board, board):
+            #     with open('ret.txt', 'a') as f:
+            #         print('vay: ', neighbor)
+                    # f.write('temp_board: \n{0}\n'.format(temp_board))
+                    # f.write('board: {0}\n'.format(board))
     
-    def process(self, board):
-        max_score = -10
-        movable = np.where(board == 0)
-        next_move = (0,0)
-        for i, pos in enumerate(zip(movable[0], movable[1])):
-            if board[pos[0], pos[1]] != 0:
-                raise ValueError("Loi move2")
-            n_board = self.move(board, pos, self.value)
-            score = self.alphabeta(n_board, -10, 10, 1, False)
-            print('+++++++++++++++++++++++++++++++++++++++++++++++!')
-            print('pos: ', pos)
-            print('score: ', score)
-            print('len: {0}/{1}'.format(i, len(movable[0])))
-            print('================================================/')
-            if  score > max_score:
-                with open('ret.txt', 'a') as f:
-                    f.write("better score: ")
-                max_score = score
-                next_move = pos
-            with open('ret.txt', 'a') as f:
-                f.write('score: {0}\n'.format(score))
-                f.write(str(n_board) + "\n\n")
+    return board
+def get_next_move(board):
+    score = 0
+    max_score=-40
+    nextMove = None
 
-            
-        return next_move
-    
-    def check_position(self, x, y):
-        if 0 <= x < self.size:
-            return True
-        if 0 <= y < self.size:
-            return True
-        return False
-        
-    def play(self):
-        board = np.zeros((self.size, self.size))
-
-        while True:
-            with open('ret.txt', 'a') as f:
-                f.write('___________________________________________\n')
-            print('____________________________________________________-')
-            x = int(input('x: '))
-            y = int(input('y: '))
-
-            while not self.check_position(x,y):
-                self.showBoard(board)
-                print((x,y))
-                x = int(input('x: '))
-                y = int(input('y: '))
+    team_pos = []
+    for i in range(5):
+        for j in range(5):
+            if board[i][j] == AI_TEAM:
+                team_pos.append((i,j))
+    # team_pos = np.where(board == AI_TEAM)
+    for pos in team_pos:
+        neighbors = adjacentDict[pos[0]*5 + pos[1]]
+        for neighbor in neighbors:
+            if board[ neighbor[0] ][ neighbor[1] ] != 0:
+                continue
+            temp_board = copy.deepcopy(board)
+            temp_board = makemove(temp_board, pos, neighbor)
+            temp_board = postprocess_move(temp_board, pos, neighbor, AI_TEAM)
+            score = minimax(temp_board, -30, 30, 1, False)
+            # print('+++++++++++++++++++++++++++++++++++++++++++++++!')
+            # print('pos: ', pos)
+            # print('score: ', score)
+            # print('================================================/')
+            if score >= max_score:
                 
+                nextMove = [pos, neighbor]
+                max_score = score
+    #print(nextMove)
+    return nextMove
 
-            if board[y, x] != 0:
-                raise ValueError("Loi move3")
-            board = self.move(board, (y,x), self.enemy)
-
-            if self.isEndGame(board):
-                self.showBoard(board)
-                break
-            
-            com_pos = self.process(board)
-            board = self.move(board, com_pos, self.value)
-
-            self.showBoard(board)
-            print(self.eveluate(board))
-            if self.isEndGame(board):
-                break
-
-        print('Winner is: ', self.get_result(board))
+def process(board):
+    global AI_BOARD
+    if AI_BOARD == None:
+        AI_BOARD = board
+        nextMove = get_next_move(board)
+        AI_BOARD = makemove(AI_BOARD, nextMove[0], nextMove[1])
+        return nextMove
     
-
-            
-            
-
+    fromPos = None
+    toPos = None
+    for i in range(5):
+        for j in range(5):
+            if board[i][j] != AI_BOARD[i][j]:
+                if AI_BOARD[i][j] != 0:
+                    fromPos = (i,j)
+                else:
+                    toPos = (i,j)
     
+    #print('Nuoc di gan nhat: {0}->{1}'.format(fromPos, toPos))
     
+    # Co ganh or vay
+    if eveluate(AI_BOARD) != eveluate(board):
+        nextMove = get_next_move(board)
+        if nextMove != None:
+            AI_BOARD = makemove(AI_BOARD, nextMove[0], nextMove[1])
+        return nextMove
+    
+    neighbors_can_move = [] # Luu cac neighbor co the di chuyen khi dinh bay
+    # Khong ganh or vay
+    neighbors = adjacentDict[fromPos[0]*5+fromPos[1]]
+    for neighbor in neighbors:
+        if board[ neighbor[0] ][ neighbor[1] ] != AI_TEAM:
+            continue
+        temp_board = copy.deepcopy(board)
+        temp_board = makemove(temp_board, neighbor, fromPos)
+        if not cmp_board(ganh(temp_board, AI_TEAM), temp_board): # co the ganh duoc
+            neighbors_can_move.append(neighbor)
+    
+    if len(neighbors_can_move) == 0:
+        nextMove = get_next_move(board)
+        if nextMove != None:
+            AI_BOARD = makemove(AI_BOARD, nextMove[0], nextMove[1])
+        return nextMove
+    
+    else:
+        #print(neighbors_can_move)
+        nextMove = (neighbors_can_move[0],fromPos)
+        AI_BOARD = makemove(AI_BOARD, nextMove[0], nextMove[1])
+        return nextMove
 
-caro = Caro(3)
-caro.play()
 
 
-# a = np.array([[1,2,3], [5,1,3], [3,2,6]])
-# print(a)
-# print(np.where(a == 3))
+def playgame(board):
+
+    while True:
+        print('==================================================')
+        print('From pos')
+        y1 = int(input("y: "))
+        x1 = int(input("x: "))
+        
+        
+        print('To pos')
+        y2 = int(input("y: "))
+        x2 = int(input("x: "))
+        
+        board = makemove(board, (y1,x1), (y2,x2))
+        board = postprocess_move(board, (y1,x1), (y2,x2), -1 * AI_TEAM)
+
+        show_board(board)
+        print('_____________________________________________')
+
+
+        # next_move = get_next_move(board)
+        next_move = process(board)
+        board = makemove(board, next_move[0], next_move[1])
+        board = postprocess_move(board, next_move[0], next_move[1], AI_TEAM)
+
+        show_board(board)
+
+
+board =[
+        [   1,  1,  1,  0,  1],
+        [   1,  0,  -1, 1,  1],
+        [   1,  0,  0,  0, -1],
+        [   -1, -1, 0,  0, -1],
+        [   -1, 0, -1,  0, -1]
+]
+
+show_board(board)
+#playgame(board)
+
+def test(board):
+
+    print('==================================================')
+    print('From pos')
+    y1 = int(input("y: "))
+    x1 = int(input("x: "))
+        
+        
+    print('To pos')
+    y2 = int(input("y: "))
+    x2 = int(input("x: "))
+        
+    board = makemove(board, (y1,x1), (y2,x2))
+    board = postprocess_move(board, (y1,x1), (y2,x2), -1 * AI_TEAM)
+
+    show_board(board)
+    print('_____________________________________________')
+
+
+        # next_move = get_next_move(board)
+    next_move = process(board)
+    board = makemove(board, next_move[0], next_move[1])
+    board = postprocess_move(board, next_move[0], next_move[1], AI_TEAM)
+
+    show_board(board)
+
+
+AI_BOARD = board
+test(board)
